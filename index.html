@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>仕入メモ</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Meiryo', 'Segoe UI', sans-serif;
+      background: #0a0e1a;
+      color: #d1d9e6;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #111827;
+      padding: 14px 16px;
+      border-bottom: 1px solid #1e2a3a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { font-size: 1.15rem; color: #e0e6f0; font-weight: bold; }
+    .header-count {
+      font-size: 0.75rem;
+      color: #4a5568;
+      background: #1e2a3a;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    /* ── Form ── */
+    .form-outer {
+      margin: 16px 12px 0;
+    }
+    .form-section {
+      background: #111827;
+      border-radius: 14px;
+      border: 1px solid #1e2a3a;
+      padding: 16px;
+    }
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .form-header h2 {
+      font-size: 0.78rem;
+      color: #4a90d9;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .btn-cancel-edit {
+      display: none;
+      font-size: 0.72rem;
+      color: #8899aa;
+      background: #1a2535;
+      border: 1px solid #2a3a50;
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      color: #8899aa;
+      margin-bottom: 5px;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+    }
+    .field label .opt { color: #3a4a60; font-weight: normal; margin-left: 4px; }
+    .field label .auto-tag {
+      color: #2563eb;
+      font-weight: normal;
+      margin-left: 4px;
+      font-size: 0.68rem;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      background: #0d1420;
+      border: 1px solid #2a3a50;
+      border-radius: 8px;
+      color: #e0e6f0;
+      font-size: 1rem;
+      padding: 11px 13px;
+      outline: none;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: #2563eb; }
+    .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234a5568' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; cursor: pointer; }
+    .field textarea { resize: none; height: 72px; line-height: 1.5; }
+    .field input::placeholder, .field textarea::placeholder { color: #3a4a60; }
+    .field input.auto-calc {
+      color: #4a90d9;
+      border-color: #1e3a60;
+      background: #0a1828;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .field-row .field { margin-bottom: 0; }
+
+    .field input[type="number"] {
+      text-align: right;
+      -moz-appearance: textfield;
+    }
+    .field input[type="number"]::-webkit-outer-spin-button,
+    .field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* クイック選択ボタン */
+    .quick-btns {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+    .quick-btn {
+      padding: 7px 14px;
+      background: #1a2535;
+      border: 1px solid #2a3a50;
+      border-radius: 20px;
+      color: #8899aa;
+      font-size: 0.8rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+    .quick-btn:active, .quick-btn.active {
+      background: #1d4ed8;
+      border-color: #2563eb;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .datetime-display {
+      background: #0d1420;
+      border: 1px solid #2a3a50;
+      border-radius: 8px;
+      padding: 11px 13px;
+      font-size: 0.95rem;
+      color: #5a7a9a;
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 15px;
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 4px;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .btn-add:active { background: #1e40af; }
+    .btn-add.editing { background: #065f46; }
+    .btn-add.editing:active { background: #064e3b; }
+
+    /* ── 記録一覧 ── */
+    .list-section { margin: 16px 12px 0; }
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .list-header h2 {
+      font-size: 0.78rem;
+      color: #4a90d9;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .btn-select-mode, .btn-clear-all, .btn-copy-tsv, .btn-sort {
+      font-size: 0.72rem;
+      color: #8899aa;
+      background: none;
+      border: 1px solid #2a3a50;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-select-mode.active {
+      color: #fbbf24;
+      border-color: #92400e;
+      background: #1c1408;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #3a4a60;
+      font-size: 0.88rem;
+      padding: 32px 0;
+    }
+
+    /* ── 記録カード ── */
+    .record-card {
+      background: #111827;
+      border: 1px solid #1e2a3a;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      transition: border-color 0.15s;
+    }
+    .record-card.selected {
+      border-color: #2563eb;
+      background: #0f1e3a;
+    }
+
+    /* チェックボックスエリア */
+    .card-check {
+      display: none;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .select-mode .card-check { display: block; }
+    .card-check input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    /* カード本体 */
+    .card-body { flex: 1; min-width: 0; }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .card-date { font-size: 0.7rem; color: #4a5568; line-height: 1.4; }
+    .card-pay {
+      font-size: 0.72rem;
+      font-weight: bold;
+      background: #1a2a40;
+      color: #4a90d9;
+      border: 1px solid #2a4060;
+      border-radius: 10px;
+      padding: 3px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .card-location {
+      font-size: 0.78rem;
+      color: #8899aa;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .card-location::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #2563eb;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .card-location-inner { line-height: 1.5; }
+    .card-location-store { color: #a0b0c8; font-weight: bold; }
+    .card-location-area  { color: #6a8098; font-size: 0.72rem; }
+    .card-type-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: #1a2535;
+      color: #6a8aaa;
+      border: 1px solid #2a3a50;
+    }
+    .card-type-badge.online  { background: #0f2040; color: #4a90d9; border-color: #1e3a60; }
+    .card-type-badge.store   { background: #1a2a1a; color: #6aaa6a; border-color: #2a4a2a; }
+    .card-type-badge.kaitori { background: #2a1a2a; color: #aa6aaa; border-color: #4a2a4a; }
+
+    .card-item {
+      font-size: 1rem;
+      color: #dde6f0;
+      font-weight: bold;
+      line-height: 1.45;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-nums {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-bottom: 6px;
+    }
+    .card-num-item { font-size: 0.72rem; color: #556677; }
+    .card-num-item span { color: #93c5a8; font-weight: bold; font-size: 0.85rem; }
+
+    .card-spec { color: #8899aa; font-weight: normal; }
+    .card-order { font-size: 0.72rem; color: #556677; font-family: 'Menlo', 'Consolas', monospace; }
+    .card-order span { color: #7a8fa8; }
+
+
+    /* カードアクションボタン */
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .select-mode .card-actions { display: none; }
+    .btn-edit, .btn-del {
+      background: none;
+      border: 1px solid #2a3a50;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+    .btn-edit { color: #4a90d9; }
+    .btn-edit:active { background: #1a2a40; }
+    .btn-dupe { color: #6a9a6a; }
+    .btn-dupe:active { background: #1a2a1a; }
+    .btn-del  { color: #4a5568; }
+    .btn-del:active  { color: #e53e3e; border-color: #e53e3e; }
+
+    /* ── 選択削除バー ── */
+    .select-bar {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #111827;
+      border-top: 1px solid #1e2a3a;
+      padding: 12px 16px;
+      z-index: 200;
+      gap: 10px;
+    }
+    .select-bar.show { display: flex; align-items: center; }
+    .select-bar-info { flex: 1; font-size: 0.85rem; color: #8899aa; }
+    .select-bar-info strong { color: #e0e6f0; }
+    .btn-dupe-selected {
+      padding: 10px 20px;
+      background: #14532d;
+      color: #86efac;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-dupe-selected:active { background: #166534; }
+    .btn-delete-selected {
+      padding: 10px 20px;
+      background: #7f1d1d;
+      color: #fca5a5;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-delete-selected:active { background: #991b1b; }
+
+    /* ── 並び替えモード ── */
+    .drag-handle {
+      display: none;
+      font-size: 1.3rem;
+      color: #4a5568;
+      padding: 4px 6px;
+      flex-shrink: 0;
+      align-items: center;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+    .reorder-mode .drag-handle { display: flex; }
+    .reorder-mode .card-actions { display: none !important; }
+    .reorder-mode .card-check { display: none !important; }
+    .record-card.dragging { opacity: 0.15; }
+    .record-card { transition: border-color 0.15s, transform 0.18s ease; }
+    .drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 500;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.85);
+      transform: scale(1.02);
+      opacity: 0.95;
+      background: #1a2540 !important;
+      border: 1px solid #2563eb !important;
+      border-radius: 12px;
+      margin: 0 !important;
+      transition: none !important;
+    }
+    .btn-done-reorder {
+      display: none;
+      font-size: 0.78rem;
+      color: #4ade80;
+      background: none;
+      border: 1px solid #166534;
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: bold;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1d4ed8;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 24px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>仕入メモ</h1>
+  <span class="header-count" id="header-count">0 件</span>
+</header>
+
+<!-- 入力フォーム -->
+<div class="form-outer">
+  <div class="form-header">
+    <h2 id="form-title">新規追加</h2>
+    <button class="btn-cancel-edit" id="btn-cancel-edit" onclick="cancelEdit()">キャンセル</button>
+  </div>
+  <section class="form-section">
+
+  <div class="field">
+    <label>取引年月日</label>
+    <input type="date" id="inp-date">
+  </div>
+
+  <div class="field">
+    <label>仕入種別</label>
+    <select id="inp-type">
+      <option value="オンライン">オンライン</option>
+      <option value="店舗">店舗</option>
+      <option value="買取">買取</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>仕入店舗</label>
+    <input type="text" id="inp-store" placeholder="例：ヤマダ電機" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label>仕入場所<span class="opt">任意</span></label>
+    <div class="quick-btns">
+      <button class="quick-btn" id="area-btn-1" onclick="selectArea(this, 'shiji326@yahoo.co.jp')">shiji326</button>
+      <button class="quick-btn" id="area-btn-2" onclick="selectArea(this, 'nyuka326@yahoo.co.jp')">nyuka326</button>
+    </div>
+    <input type="text" id="inp-area" placeholder="例：新宿店" autocomplete="off" oninput="onAreaInput()">
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>商品名</label>
+      <input type="text" id="inp-name" placeholder="例：ポケモンカード" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>仕様</label>
+      <input type="text" id="inp-spec" placeholder="例：ニンジャスピナー" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>単価<span class="opt">任意</span></label>
+      <input type="number" id="inp-price" placeholder="0" min="0" oninput="autoCalcAmount()">
+    </div>
+    <div class="field">
+      <label>仕入数<span class="opt">任意</span></label>
+      <input type="number" id="inp-qty" placeholder="0" min="0" oninput="autoCalcAmount()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>金額<span class="opt">任意</span><span class="auto-tag" id="auto-tag" style="display:none">自動計算</span></label>
+      <input type="number" id="inp-amount" placeholder="0" min="0" oninput="onAmountInput()">
+    </div>
+    <div class="field">
+      <label>使用ポイント<span class="opt">任意</span></label>
+      <input type="number" id="inp-point" placeholder="0" min="0">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>支払方法<span class="opt">任意</span></label>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setPayMethod(this, 'Marriott Bonvoyプレミアムカード')">Marriott</button>
+      </div>
+      <input type="text" id="inp-pay-method" placeholder="例：現金、クレカ" autocomplete="off" oninput="onPayMethodInput()">
+    </div>
+    <div class="field">
+      <label>決済方法<span class="opt">任意</span></label>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setPayService(this, 'PayPay')">PayPay</button>
+      </div>
+      <input type="text" id="inp-pay-service" placeholder="例：PayPay" autocomplete="off" oninput="onPayServiceInput()">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>注文番号<span class="opt">任意</span></label>
+    <input type="text" id="inp-order" placeholder="例：AXZ-2849-1023" autocomplete="off">
+  </div>
+
+  <button class="btn-add" id="btn-add" onclick="saveRecord()">記録する</button>
+  </section>
+</div>
+
+<!-- 記録一覧 -->
+<section class="list-section">
+  <div class="list-header">
+    <h2>記録一覧</h2>
+    <button class="btn-select-mode" id="btn-select-mode" onclick="toggleSelectMode()">選択</button>
+    <button class="btn-sort" id="btn-sort" onclick="toggleSort()">新しい順</button>
+    <button class="btn-clear-all" id="btn-clear-all" onclick="clearAll()">全件削除</button>
+    <button class="btn-copy-tsv" id="btn-copy-tsv" onclick="copyTSV()">コピー</button>
+    <button class="btn-done-reorder" id="btn-done-reorder" onclick="exitReorderMode()">完了</button>
+  </div>
+  <div id="record-list"></div>
+</section>
+
+<!-- 選択削除バー -->
+<div class="select-bar" id="select-bar">
+  <div class="select-bar-info"><strong id="select-count">0</strong> 件を選択中</div>
+  <button class="btn-dupe-selected" onclick="dupeSelected()">複製</button>
+  <button class="btn-delete-selected" onclick="deleteSelected()">削除</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // ── Firebase 初期化 ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfvqQWLB8NJqmaH0k2G0wPcbJJjz2Vu4A",
+    authDomain: "kaimemo-58bad.firebaseapp.com",
+    projectId: "kaimemo-58bad",
+    storageBucket: "kaimemo-58bad.firebasestorage.app",
+    messagingSenderId: "308069117698",
+    appId: "1:308069117698:web:c61a57853abb7e8ffb1c1b"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const docRef = db.collection('data').doc('records');
+
+  let records = [];
+  let editingId = null;
+  let selectMode = false;
+  let selectedIds = new Set();
+  let amountManual = false;
+  let selectedPayMethodValue = '';
+  let selectedPayServiceValue = '';
+  let reorderMode = false;
+  let sortOrder = 'desc'; // 'desc'=新しい順, 'asc'=古い順
+  let dragState = null;
+  let longPressTimer = null;
+  let longPressStart = { x: 0, y: 0 };
+
+  // 初期ローディング表示
+  document.getElementById('record-list').innerHTML = '<div class="empty-msg">読み込み中...</div>';
+
+  // ── 日付ユーティリティ ──
+  function todayValue() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  function formatDatetime(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  document.getElementById('inp-date').value = todayValue();
+
+  // ── 支払方法クイック選択 ──
+  function setPayMethod(btn, value) {
+    const isActive = btn.classList.contains('active');
+    btn.classList.toggle('active', !isActive);
+    selectedPayMethodValue = isActive ? '' : value;
+  }
+  function onPayMethodInput() {
+    document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+    selectedPayMethodValue = '';
+  }
+  function setPayService(btn, value) {
+    const isActive = btn.classList.contains('active');
+    btn.classList.toggle('active', !isActive);
+    selectedPayServiceValue = isActive ? '' : value;
+  }
+  function onPayServiceInput() {
+    document.querySelector('.quick-btn[onclick*="setPayService"]')?.classList.remove('active');
+    selectedPayServiceValue = '';
+  }
+
+  // ── 仕入場所ボタン選択（テキスト欄とは独立） ──
+  let selectedAreaEmail = '';
+  function selectArea(btn, value) {
+    const isActive = btn.classList.contains('active');
+    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
+    if (!isActive) { btn.classList.add('active'); selectedAreaEmail = value; }
+    else selectedAreaEmail = '';
+  }
+  function onAreaInput() {
+    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
+    selectedAreaEmail = '';
+  }
+
+  // ── 金額自動計算 ──
+  function autoCalcAmount() {
+    if (amountManual) return;
+    const price = parseFloat(document.getElementById('inp-price').value);
+    const qty   = parseFloat(document.getElementById('inp-qty').value);
+    const amountEl = document.getElementById('inp-amount');
+    const tag = document.getElementById('auto-tag');
+    if (!isNaN(price) && !isNaN(qty) && price >= 0 && qty >= 0) {
+      amountEl.value = price * qty;
+      amountEl.classList.add('auto-calc');
+      tag.style.display = '';
+    } else {
+      amountEl.value = '';
+      amountEl.classList.remove('auto-calc');
+      tag.style.display = 'none';
+    }
+  }
+  function onAmountInput() {
+    // ユーザーが直接入力したら自動計算を解除
+    amountManual = document.getElementById('inp-amount').value !== '';
+    document.getElementById('inp-amount').classList.remove('auto-calc');
+    document.getElementById('auto-tag').style.display = 'none';
+  }
+
+  // ── 保存（追加 or 更新） ──
+  function saveRecord() {
+    const transactionDate = document.getElementById('inp-date').value.replace(/-/g, '/');
+    const purchaseType = document.getElementById('inp-type').value;
+    const store      = document.getElementById('inp-store').value.trim();
+    const area       = document.getElementById('inp-area').value.trim();
+    const areaEmail  = selectedAreaEmail;
+    const name       = document.getElementById('inp-name').value.trim();
+    const spec       = document.getElementById('inp-spec').value.trim();
+    const price      = document.getElementById('inp-price').value.trim();
+    const qty        = document.getElementById('inp-qty').value.trim();
+    const amount     = document.getElementById('inp-amount').value.trim();
+    const point      = document.getElementById('inp-point').value.trim();
+    const payMethod  = selectedPayMethodValue || document.getElementById('inp-pay-method').value.trim();
+    const payService = selectedPayServiceValue || document.getElementById('inp-pay-service').value.trim();
+    const order      = document.getElementById('inp-order').value.trim();
+
+    if (!store) { showToast('仕入店舗を入力してください'); return; }
+    if (!name)  { showToast('商品名を入力してください'); return; }
+
+    const data = {
+      transactionDate, purchaseType, store, area, areaEmail, name, spec,
+      price:  price  ? Number(price)  : null,
+      qty:    qty    ? Number(qty)    : null,
+      amount: amount ? Number(amount) : null,
+      point:  point  ? Number(point)  : null,
+      payMethod, payService, order,
+    };
+
+    if (editingId !== null) {
+      const idx = records.findIndex(r => r.id === editingId);
+      records[idx] = { ...records[idx], ...data };
+      showToast('更新しました');
+      cancelEdit();
+    } else {
+      records.unshift({ id: Date.now(), datetime: formatDatetime(new Date()), ...data });
+      showToast('記録しました');
+      clearForm();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    save();
+    renderList();
+  }
+
+  // ── 編集 ──
+  function editRecord(id) {
+    const r = records.find(r => r.id === id);
+    if (!r) return;
+    editingId = id;
+    amountManual = r.amount !== null;
+
+    document.getElementById('inp-date').value         = r.transactionDate ? r.transactionDate.replace(/\//g, '-') : todayValue();
+    document.getElementById('inp-type').value        = r.purchaseType || 'オンライン';
+    document.getElementById('inp-store').value      = r.store || '';
+    document.getElementById('inp-area').value = r.area || '';
+    selectedAreaEmail = r.areaEmail || '';
+    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => {
+      b.classList.toggle('active', r.areaEmail && r.areaEmail.startsWith(b.textContent));
+    });
+    document.getElementById('inp-name').value       = r.name  || '';
+    document.getElementById('inp-spec').value       = r.spec  || '';
+    document.getElementById('inp-price').value      = r.price  ?? '';
+    document.getElementById('inp-qty').value        = r.qty    ?? '';
+    document.getElementById('inp-amount').value     = r.amount ?? '';
+    document.getElementById('inp-point').value      = r.point  ?? '';
+    if (r.payMethod === 'Marriott Bonvoyプレミアムカード' || r.payMethod === 'Marriott') {
+      selectedPayMethodValue = 'Marriott Bonvoyプレミアムカード';
+      document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.add('active');
+      document.getElementById('inp-pay-method').value = '';
+    } else {
+      selectedPayMethodValue = '';
+      document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+      document.getElementById('inp-pay-method').value = r.payMethod || '';
+    }
+    if (r.payService === 'PayPay') {
+      selectedPayServiceValue = 'PayPay';
+      document.querySelector('.quick-btn[onclick*="setPayService"]')?.classList.add('active');
+      document.getElementById('inp-pay-service').value = '';
+    } else {
+      selectedPayServiceValue = '';
+      document.querySelector('.quick-btn[onclick*="setPayService"]')?.classList.remove('active');
+      document.getElementById('inp-pay-service').value = r.payService || '';
+    }
+    document.getElementById('inp-order').value      = r.order || '';
+
+    const amountEl = document.getElementById('inp-amount');
+    amountEl.classList.toggle('auto-calc', !amountManual && r.price != null && r.qty != null);
+    document.getElementById('auto-tag').style.display = (!amountManual && r.price != null && r.qty != null) ? '' : 'none';
+
+    document.getElementById('form-title').textContent = '編集';
+    document.getElementById('btn-add').textContent = '更新する';
+    document.getElementById('btn-add').classList.add('editing');
+    document.getElementById('btn-cancel-edit').style.display = 'block';
+
+    document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    amountManual = false;
+    clearForm();
+    document.getElementById('form-title').textContent = '新規追加';
+    document.getElementById('btn-add').textContent = '記録する';
+    document.getElementById('btn-add').classList.remove('editing');
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+    document.getElementById('auto-tag').style.display = 'none';
+    document.getElementById('inp-amount').classList.remove('auto-calc');
+  }
+
+  function clearForm() {
+    document.getElementById('inp-date').value = todayValue();
+    document.getElementById('inp-type').value = 'オンライン';
+    ['inp-store','inp-area','inp-name','inp-spec','inp-price','inp-qty','inp-amount','inp-point','inp-pay-method','inp-pay-service','inp-order']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    selectedAreaEmail = '';
+    selectedPayMethodValue = '';
+    selectedPayServiceValue = '';
+    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
+    document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+    document.querySelector('.quick-btn[onclick*="setPayService"]')?.classList.remove('active');
+    document.getElementById('inp-amount').classList.remove('auto-calc');
+    document.getElementById('auto-tag').style.display = 'none';
+    amountManual = false;
+  }
+
+  // ── 削除 ──
+  function deleteRecord(id) {
+    records = records.filter(r => r.id !== id);
+    save(); renderList();
+    showToast('削除しました');
+  }
+  function clearAll() {
+    if (!records.length) return;
+    if (!confirm(`全${records.length}件を削除しますか？`)) return;
+    records = []; save(); renderList();
+    showToast('全件削除しました');
+  }
+
+  // ── 選択モード ──
+  function toggleSelectMode() {
+    selectMode = !selectMode;
+    selectedIds.clear();
+    const btn = document.getElementById('btn-select-mode');
+    btn.textContent = selectMode ? 'キャンセル' : '選択';
+    btn.classList.toggle('active', selectMode);
+    document.getElementById('select-bar').classList.toggle('show', false);
+    renderList();
+  }
+
+  function toggleSelect(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    // カードのselectedクラス更新
+    document.querySelectorAll('.record-card').forEach(card => {
+      const cid = Number(card.dataset.id);
+      card.classList.toggle('selected', selectedIds.has(cid));
+    });
+    const bar = document.getElementById('select-bar');
+    document.getElementById('select-count').textContent = selectedIds.size;
+    bar.classList.toggle('show', selectedIds.size > 0);
+  }
+
+  function deleteSelected() {
+    if (!selectedIds.size) return;
+    if (!confirm(`${selectedIds.size}件を削除しますか？`)) return;
+    records = records.filter(r => !selectedIds.has(r.id));
+    selectedIds.clear();
+    save();
+    toggleSelectMode(); // 選択モード解除
+    showToast('削除しました');
+  }
+
+  // ── Firestore 保存 ──
+  function save() {
+    docRef.set({ list: records });
+  }
+
+  // ── リアルタイム同期 ──
+  docRef.onSnapshot((snap) => {
+    if (dragState) return; // ドラッグ中は割り込まない
+    records = snap.exists ? (snap.data().list || []) : [];
+    renderList();
+  });
+
+  // ── 昇順・降順ソート ──
+  function toggleSort() {
+    sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+    const btn = document.getElementById('btn-sort');
+    btn.textContent = sortOrder === 'desc' ? '新しい順' : '古い順';
+    records.sort((a, b) => {
+      const ta = a.datetime || '';
+      const tb = b.datetime || '';
+      return sortOrder === 'desc' ? tb.localeCompare(ta) : ta.localeCompare(tb);
+    });
+    save();
+    renderList();
+    showToast(sortOrder === 'desc' ? '新しい順に並び替えました' : '古い順に並び替えました');
+  }
+
+  // ── 並び替えモード ──
+  function enterReorderMode() {
+    if (selectMode) toggleSelectMode();
+    reorderMode = true;
+    document.getElementById('btn-select-mode').style.display = 'none';
+    document.getElementById('btn-clear-all').style.display = 'none';
+    document.getElementById('btn-copy-tsv').style.display = 'none';
+    document.getElementById('btn-done-reorder').style.display = '';
+    renderList();
+    if (navigator.vibrate) navigator.vibrate(40);
+  }
+
+  function exitReorderMode() {
+    reorderMode = false;
+    document.getElementById('btn-select-mode').style.display = '';
+    document.getElementById('btn-clear-all').style.display = '';
+    document.getElementById('btn-copy-tsv').style.display = '';
+    document.getElementById('btn-done-reorder').style.display = 'none';
+    renderList();
+  }
+
+  function startDrag(e, id) {
+    const cardEl = document.querySelector(`.record-card[data-id="${id}"]`);
+    if (!cardEl) return;
+    const rect = cardEl.getBoundingClientRect();
+    const touch = e.touches[0];
+
+    // カードをそのままクローンしてゴーストに使う
+    const ghost = cardEl.cloneNode(true);
+    ghost.className = 'record-card drag-ghost';
+    ghost.style.left   = `${rect.left}px`;
+    ghost.style.top    = `${rect.top}px`;
+    ghost.style.width  = `${rect.width}px`;
+    document.body.appendChild(ghost);
+    cardEl.classList.add('dragging');
+
+    dragState = {
+      id,
+      cardEl,
+      ghost,
+      offsetY: touch.clientY - rect.top,
+      startY: touch.clientY,
+      moved: false,
+      targetIdx: records.findIndex(x => x.id === id),
+    };
+  }
+
+  function moveDrag(e) {
+    if (!dragState) return;
+    const touch = e.touches[0];
+    const { ghost, offsetY } = dragState;
+
+    if (Math.abs(touch.clientY - dragState.startY) > 8) dragState.moved = true;
+
+    ghost.style.top = `${Math.max(60, touch.clientY - offsetY)}px`;
+
+    if (!dragState.moved) return;
+
+    const allCards = [...document.querySelectorAll('.record-card:not(.drag-ghost)')];
+    const srcIdx = records.findIndex(x => x.id === dragState.id);
+    const cy = touch.clientY;
+
+    // ターゲット位置を元のレイアウト座標で判定（transform前の位置）
+    let targetIdx = allCards.length;
+    for (let i = 0; i < allCards.length; i++) {
+      const rb = allCards[i].getBoundingClientRect();
+      // transformで動いた分を逆算して元の中心Y
+      const matrix = new DOMMatrix(getComputedStyle(allCards[i]).transform);
+      const origCenterY = rb.top - matrix.m42 + rb.height / 2;
+      if (cy < origCenterY) { targetIdx = i; break; }
+    }
+    dragState.targetIdx = targetIdx;
+
+    // 他のカードをスライドさせて入れ替わりを表現
+    const draggedCard = allCards[srcIdx];
+    const shiftPx = draggedCard ? draggedCard.getBoundingClientRect().height + 10 : 0;
+
+    allCards.forEach((c, i) => {
+      if (i === srcIdx) return;
+      let shift = 0;
+      if (targetIdx > srcIdx && i > srcIdx && i < targetIdx) shift = -shiftPx;
+      else if (targetIdx <= srcIdx && i >= targetIdx && i < srcIdx) shift = shiftPx;
+      c.style.transform = `translateY(${shift}px)`;
+    });
+  }
+
+  function endDrag() {
+    if (!dragState) return;
+    const { ghost, cardEl, id, targetIdx, moved } = dragState;
+    ghost.remove();
+    cardEl.classList.remove('dragging');
+    document.querySelectorAll('.record-card:not(.drag-ghost)').forEach(c => c.style.transform = '');
+    dragState = null;
+
+    // タップ（移動なし）→ リオーダーモード終了
+    if (!moved) { exitReorderMode(); return; }
+
+    const srcIdx = records.findIndex(x => x.id === id);
+    if (targetIdx !== srcIdx && targetIdx !== srcIdx + 1) {
+      const [item] = records.splice(srcIdx, 1);
+      const insertAt = targetIdx > srcIdx ? targetIdx - 1 : targetIdx;
+      records.splice(insertAt, 0, item);
+      save();
+    }
+    renderList();
+  }
+
+  // ── 表示 ──
+  function fmtNum(n) { return n.toLocaleString('ja-JP'); }
+
+  function renderList() {
+    const list = document.getElementById('record-list');
+    document.getElementById('header-count').textContent = `${records.length} 件`;
+    list.classList.toggle('select-mode', selectMode);
+    list.classList.toggle('reorder-mode', reorderMode);
+
+    if (!records.length) {
+      list.innerHTML = '<div class="empty-msg">記録がありません</div>';
+      return;
+    }
+
+    list.innerHTML = records.map(r => {
+      const numItems = [];
+      if (r.amount != null) numItems.push(`金額 <span>¥${fmtNum(r.amount)}</span>`);
+      if (r.price  != null) numItems.push(`単価 <span>¥${fmtNum(r.price)}</span>`);
+      if (r.qty    != null) numItems.push(`仕入数 <span>${fmtNum(r.qty)}個</span>`);
+      if (r.point  != null) numItems.push(`使用PT <span>${fmtNum(r.point)}pt</span>`);
+      const numsHTML = numItems.length
+        ? `<div class="card-nums">${numItems.map(s=>`<div class="card-num-item">${s}</div>`).join('')}</div>` : '';
+
+      const payLabel = [r.payMethod, r.payService].filter(Boolean).join(' / ') || '―';
+      const checked = selectedIds.has(r.id) ? 'checked' : '';
+      const selectedCls = selectedIds.has(r.id) ? ' selected' : '';
+
+      return `
+        <div class="record-card${selectedCls}" data-id="${r.id}">
+          <div class="card-check">
+            <input type="checkbox" ${checked} onchange="toggleSelect(${r.id})">
+          </div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-date">${r.datetime}</div>
+              <div class="card-pay">${payLabel}</div>
+            </div>
+            ${(() => { const t = r.purchaseType || 'オンライン'; const cls = t === 'オンライン' ? 'online' : t === '店舗' ? 'store' : 'kaitori'; return `<div class="card-type-badge ${cls}">${t}</div>`; })()}
+            <div class="card-location">
+              <div class="card-location-inner">
+                <div class="card-location-store">${r.store}</div>
+                ${r.area      ? `<div class="card-location-area">${r.area}</div>`      : ''}
+                ${r.areaEmail ? `<div class="card-location-area">${r.areaEmail}</div>` : ''}
+              </div>
+            </div>
+            <div class="card-item">${(r.name||'').replace(/</g,'&lt;')}${r.spec ? `<span class="card-spec"> ${r.spec.replace(/</g,'&lt;')}</span>` : ''}</div>
+            ${numsHTML}
+            ${r.order ? `<div class="card-order">注文番号：<span>${r.order}</span></div>` : ''}
+          </div>
+          <div class="card-actions">
+            <button class="btn-edit" onclick="editRecord(${r.id})">編集</button>
+            <button class="btn-del"  onclick="deleteRecord(${r.id})">削除</button>
+          </div>
+          <div class="drag-handle" data-id="${r.id}">☰</div>
+        </div>`;
+    }).join('');
+
+    if (reorderMode) {
+      list.querySelectorAll('.drag-handle').forEach(handle => {
+        handle.addEventListener('touchstart', e => {
+          e.preventDefault();
+          startDrag(e, Number(handle.dataset.id));
+        }, { passive: false });
+      });
+    }
+  }
+
+  // ── 複製 ──
+  function dupeSelected() {
+    if (!selectedIds.size) return;
+    const now = new Date();
+    // 選択順を保つため records の順番に従い複製、先頭に追加
+    const copies = records
+      .filter(r => selectedIds.has(r.id))
+      .map((r, i) => ({ ...r, id: Date.now() + i, datetime: formatDatetime(now) }));
+    records.unshift(...copies);
+    selectedIds.clear();
+    save();
+    toggleSelectMode();
+    showToast(`${copies.length}件を複製しました`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── TSVコピー ──
+  function copyTSV() {
+    if (!records.length) { showToast('記録がありません'); return; }
+    const tsv = records.map(r => [
+      r.transactionDate || (r.datetime ? r.datetime.slice(0, 10) : ''),
+      r.purchaseType    ?? 'オンライン',
+      r.store        ?? '',
+      [r.area, r.areaEmail].filter(Boolean).join(' ') || '',
+      r.name         ?? '',
+      r.spec         ?? '',
+      '',
+      '',
+      r.payMethod    ?? '',
+      '',
+      r.payService   ?? '',
+      r.order        ?? '',
+      r.point        ?? '',
+      r.price        ?? '',
+      r.qty          ?? '',
+    ].join('\t')).join('\n');
+    navigator.clipboard.writeText(tsv).then(() => {
+      showToast(`${records.length}件をコピーしました`);
+    });
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── 長押しでリオーダーモード突入 ──
+  const listEl = document.getElementById('record-list');
+
+  listEl.addEventListener('touchstart', e => {
+    if (reorderMode || selectMode) return;
+    const card = e.target.closest('.record-card');
+    if (!card || e.target.closest('button') || e.target.closest('input')) return;
+    longPressStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    longPressTimer = setTimeout(() => {
+      longPressTimer = null;
+      enterReorderMode();
+    }, 600);
+  }, { passive: true });
+
+  listEl.addEventListener('touchmove', e => {
+    if (!longPressTimer) return;
+    const dx = Math.abs(e.touches[0].clientX - longPressStart.x);
+    const dy = Math.abs(e.touches[0].clientY - longPressStart.y);
+    if (dx > 10 || dy > 10) { clearTimeout(longPressTimer); longPressTimer = null; }
+  }, { passive: true });
+
+  listEl.addEventListener('touchend', () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  }, { passive: true });
+
+  // ── ドラッグ追跡（document全体） ──
+  document.addEventListener('touchmove', e => {
+    if (dragState) { e.preventDefault(); moveDrag(e); }
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (dragState) endDrag();
+  });
+</script>
+</body>
+</html>
