@@ -1022,7 +1022,7 @@
         ? `<div class="card-nums">${numItems.map(s=>`<div class="card-num-item">${s}</div>`).join('')}</div>` : '';
 
       const payLabel = [r.payMethod, r.payService].filter(Boolean).join(' / ') || '―';
-      const payLabelDisplay = [r.payMethod ? trunc(r.payMethod, 8) : null, r.payService ? trunc(r.payService, 8) : null].filter(Boolean).join(' / ') || '―';
+      const payLabelDisplay = trunc(payLabel, 13);
       const checked = selectedIds.has(r.id) ? 'checked' : '';
       const selectedCls = selectedIds.has(r.id) ? ' selected' : '';
 
