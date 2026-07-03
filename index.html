@@ -500,8 +500,9 @@
   <div class="field">
     <label>仕入場所<span class="opt">任意</span></label>
     <div class="quick-btns">
-      <button class="quick-btn" id="area-btn-1" onclick="selectArea(this, 'shiji326@yahoo.co.jp')">shiji326</button>
-      <button class="quick-btn" id="area-btn-2" onclick="selectArea(this, 'nyuka326@yahoo.co.jp')">nyuka326</button>
+      <button class="quick-btn" id="area-btn-1" data-area-email="shiji326@yahoo.co.jp" onclick="selectArea(this, 'shiji326@yahoo.co.jp')">shiji326</button>
+      <button class="quick-btn" id="area-btn-2" data-area-email="nyuka326@yahoo.co.jp" onclick="selectArea(this, 'nyuka326@yahoo.co.jp')">nyuka326</button>
+      <button class="quick-btn" id="area-btn-3" data-area-email="main@forkharbor.com" onclick="selectArea(this, 'main@forkharbor.com')">forkharbor</button>
     </div>
     <input type="text" id="inp-area" placeholder="例：新宿店" autocomplete="off" oninput="onAreaInput()">
   </div>
@@ -543,7 +544,8 @@
     <div class="field">
       <label>支払方法<span class="opt">任意</span></label>
       <div class="quick-btns">
-        <button class="quick-btn" onclick="setPayMethod(this, 'Marriott Bonvoyプレミアムカード')">Marriott</button>
+        <button class="quick-btn" onclick="setPayMethod(this, 'ABGC')">ABGC</button>
+        <button class="quick-btn" onclick="setPayMethod(this, 'MSCBO')">MSCBO</button>
       </div>
       <input type="text" id="inp-pay-method" placeholder="例：現金、クレカ" autocomplete="off" oninput="onPayMethodInput()">
     </div>
@@ -636,11 +638,12 @@
   // ── 支払方法クイック選択 ──
   function setPayMethod(btn, value) {
     const isActive = btn.classList.contains('active');
+    document.querySelectorAll('.quick-btn[onclick*="setPayMethod"]').forEach(b => b.classList.remove('active'));
     btn.classList.toggle('active', !isActive);
     selectedPayMethodValue = isActive ? '' : value;
   }
   function onPayMethodInput() {
-    document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+    document.querySelectorAll('.quick-btn[onclick*="setPayMethod"]').forEach(b => b.classList.remove('active'));
     selectedPayMethodValue = '';
   }
   function setPayService(btn, value) {
@@ -657,12 +660,12 @@
   let selectedAreaEmail = '';
   function selectArea(btn, value) {
     const isActive = btn.classList.contains('active');
-    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#area-btn-1, #area-btn-2, #area-btn-3').forEach(b => b.classList.remove('active'));
     if (!isActive) { btn.classList.add('active'); selectedAreaEmail = value; }
     else selectedAreaEmail = '';
   }
   function onAreaInput() {
-    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#area-btn-1, #area-btn-2, #area-btn-3').forEach(b => b.classList.remove('active'));
     selectedAreaEmail = '';
   }
 
@@ -747,8 +750,8 @@
     document.getElementById('inp-store').value      = r.store || '';
     document.getElementById('inp-area').value = r.area || '';
     selectedAreaEmail = r.areaEmail || '';
-    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => {
-      b.classList.toggle('active', r.areaEmail && r.areaEmail.startsWith(b.textContent));
+    document.querySelectorAll('#area-btn-1, #area-btn-2, #area-btn-3').forEach(b => {
+      b.classList.toggle('active', r.areaEmail && r.areaEmail === b.dataset.areaEmail);
     });
     document.getElementById('inp-name').value       = r.name  || '';
     document.getElementById('inp-spec').value       = r.spec  || '';
@@ -756,13 +759,15 @@
     document.getElementById('inp-qty').value        = r.qty    ?? '';
     document.getElementById('inp-amount').value     = r.amount ?? '';
     document.getElementById('inp-point').value      = r.point  ?? '';
-    if (r.payMethod === 'Marriott Bonvoyプレミアムカード' || r.payMethod === 'Marriott') {
-      selectedPayMethodValue = 'Marriott Bonvoyプレミアムカード';
-      document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.add('active');
+    if (r.payMethod === 'ABGC' || r.payMethod === 'MSCBO') {
+      selectedPayMethodValue = r.payMethod;
+      document.querySelectorAll('.quick-btn[onclick*="setPayMethod"]').forEach(b => {
+        b.classList.toggle('active', b.textContent === r.payMethod);
+      });
       document.getElementById('inp-pay-method').value = '';
     } else {
       selectedPayMethodValue = '';
-      document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+      document.querySelectorAll('.quick-btn[onclick*="setPayMethod"]').forEach(b => b.classList.remove('active'));
       document.getElementById('inp-pay-method').value = r.payMethod || '';
     }
     if (r.payService === 'PayPay') {
@@ -808,8 +813,8 @@
     selectedAreaEmail = '';
     selectedPayMethodValue = '';
     selectedPayServiceValue = '';
-    document.querySelectorAll('#area-btn-1, #area-btn-2').forEach(b => b.classList.remove('active'));
-    document.querySelector('.quick-btn[onclick*="setPayMethod"]')?.classList.remove('active');
+    document.querySelectorAll('#area-btn-1, #area-btn-2, #area-btn-3').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.quick-btn[onclick*="setPayMethod"]').forEach(b => b.classList.remove('active'));
     document.querySelector('.quick-btn[onclick*="setPayService"]')?.classList.remove('active');
     document.getElementById('inp-amount').classList.remove('auto-calc');
     document.getElementById('auto-tag').style.display = 'none';
